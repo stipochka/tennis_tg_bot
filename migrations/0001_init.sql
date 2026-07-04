@@ -5,7 +5,7 @@
 
 -- btree_gist нужен чтобы в GIST индексе исключения использовать
 -- равенство по скалярному court_id вместе с оператором && по диапозону
-CREATE EXTESION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 -- courts - доступные корты
 CREATE TABLE IF NOT EXISTS courts (
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS courts (
     open_time time NOT NULL DEFAULT '07:00',
     close_time time NOT NULL DEFAULT '23:00',
     address text NOT NULL,
-    is_active boolean NOT NULL DEFAULT true,
+    is_active boolean NOT NULL DEFAULT true
 );
 
 -- users - пользователи Telegram. Здесь будут использоваться ПДн: имя и телефон.
@@ -22,8 +22,8 @@ CREATE TABLE users (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     telegram_id bigint NOT NULL UNIQUE, -- постоянный id из телеграмма
     is_admin boolean NOT NULL default false,
-    created_at timestampz NOT NULL DEFAULT now(),
-    updated_at timestampz NOT NULL DEFAULT now(),
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 
@@ -34,16 +34,16 @@ CREATE TABLE users (
 CREATE TABLE reservations (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     court_id bigint NOT NULL REFERENCES courts(id),
-    user_id bigint REFERENCES users(user_id) ON DELETE SET NULL,
+    user_id bigint REFERENCES users(id) ON DELETE SET NULL,
     kind text NOT NULL DEFAULT 'booking',
     during tstzrange NOT NULL,         -- [начало, конец), 14:00-16:00
     status text NOT NULL DEFAULT 'pending',
-    created_at timestampz NOT NULL DEFAULT now(),
-    reviwed_at timestampz,
-    cancelled_at timestampz,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    reviwed_at timestamptz,
+    cancelled_at timestamptz,
 
     CONSTRAINT reservations_kind_chk
-        CHECK (kind IN ('booking', 'block'),
+        CHECK (kind IN ('booking', 'block')),
 
     CONSTRAINT reservations_status_chk
         CHECK (status IN ('pending', 'confirmed', 'rejected', 'cancelled')),
@@ -75,7 +75,7 @@ CREATE INDEX idx_reservations_user_active
     WHERE status IN ('pending', 'confirmed') AND kind = 'booking';
 
 -- Очередь модерации; ожидающие решение админа
-CREATE INDEX idx_reservations_user_active
+CREATE INDEX idx_reservations_pending
     ON reservations (created_at)
     WHERE status = 'pending' AND kind = 'booking';
 
