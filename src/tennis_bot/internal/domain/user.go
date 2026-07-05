@@ -1,7 +1,10 @@
 package domain
 
+import "time"
+
 type User struct {
 	ID         int64
 	TelegramID string `json:"telegram_id"`
 	IsAdmin    bool
+	CreatedAt  time.Time
 }
