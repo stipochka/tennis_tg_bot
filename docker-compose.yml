@@ -3,7 +3,7 @@ services:
     image: postgres:16
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-court}
-      POSTGRES_PASSWORD: ${POSTRES_PASSWORD:-court}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-court}
       POSTGRES_DB: ${POSTGRES_DB:-court}
     volumes:
       - ./pgdata:/var/lib/postgresql/data

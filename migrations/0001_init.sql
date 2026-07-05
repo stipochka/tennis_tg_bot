@@ -23,7 +23,7 @@ CREATE TABLE users (
     telegram_id bigint NOT NULL UNIQUE, -- постоянный id из телеграмма
     is_admin boolean NOT NULL default false,
     created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
+    updated_at timestamptz
 );
 
 

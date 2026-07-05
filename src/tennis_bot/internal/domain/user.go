@@ -4,7 +4,7 @@ import "time"
 
 type User struct {
 	ID         int64
-	TelegramID string `json:"telegram_id"`
+	TelegramID int64 `json:"telegram_id"`
 	IsAdmin    bool
 	CreatedAt  time.Time
 }

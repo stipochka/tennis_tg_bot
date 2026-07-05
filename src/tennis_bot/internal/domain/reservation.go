@@ -1,13 +1,27 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 type ReservationKind string
 
 var (
 	ReservationKindBooking ReservationKind = "booking"
-	ReservationKindBlocked ReservationKind = "blocked"
+	ReservationKindBlocked ReservationKind = "block"
+	ReservationKindUnknown ReservationKind = "unknown"
 )
+
+func GetReservationKind(kind string) ReservationKind {
+	switch kind {
+	case "booking":
+		return ReservationKindBooking
+	case "block":
+		return ReservationKindBlocked
+	default:
+		return ReservationKindUnknown
+	}
+}
 
 type ReservationStatus string
 
