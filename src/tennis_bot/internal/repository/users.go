@@ -30,7 +30,7 @@ func (pr *PGRepository) EnsureUser(ctx context.Context, telegramID int64) (domai
 	return user, err
 }
 
-func (pr *PGRepository) MartAsAdmin(ctx context.Context, telegramID int64) error {
+func (pr *PGRepository) MarkAsAdmin(ctx context.Context, telegramID int64) error {
 	query := fmt.Sprintf(
 		`UPDATE %s SET %s = true WHERE %s = $1;`, usersTable, isAdminCol, telegramIDCol,
 	)

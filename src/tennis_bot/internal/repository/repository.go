@@ -9,6 +9,7 @@ import (
 
 const (
 	connTimeout = 5 * time.Second
+	pingTimeout = 3 * time.Second
 )
 
 type PGRepository struct {
@@ -20,6 +21,12 @@ func NewPGRepository(connString string) (PGRepository, error) {
 	defer cancel()
 	conn, err := pgxpool.New(ctx, connString)
 	if err != nil {
+		return PGRepository{}, err
+	}
+
+	pingCtx, pingCancel := context.WithTimeout(context.Background(), pingTimeout)
+	defer pingCancel()
+	if err := conn.Ping(pingCtx); err != nil {
 		return PGRepository{}, err
 	}
 

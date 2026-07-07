@@ -2,10 +2,14 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"tennis_bot/internal/domain"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 const (
@@ -15,6 +19,8 @@ const (
 	kindCol           = "kind"
 	duringCol         = "during"
 	statusCol         = "status"
+
+	reservationNoOverlapCode = "23P01"
 )
 
 func (pr *PGRepository) CreateReservation(
@@ -36,8 +42,13 @@ func (pr *PGRepository) CreateReservation(
 	)
 
 	var reservationID int64
+	var pgErr *pgconn.PgError
 	err := pr.conn.QueryRow(ctx, query, courtID, userID, kind, start, end, status).Scan(&reservationID)
-
+	if errors.As(err, &pgErr) {
+		if pgErr.Code == reservationNoOverlapCode {
+			return reservationID, domain.ErrReservationOverlap
+		}
+	}
 	return reservationID, err
 }
 
@@ -45,7 +56,7 @@ func (pr *PGRepository) ListPending(ctx context.Context, courtID int64) ([]domai
 	query := fmt.Sprintf(`
 		SELECT
 			id, court_id, user_id, kind, lower(during), upper(during), status, created_at
-	 	FROM %s WHERE status='pending' AND courtID = $1 ORDER BY created_at;`, reservationsTable,
+	 	FROM %s WHERE status='pending' AND court_id = $1 ORDER BY created_at;`, reservationsTable,
 	)
 
 	var reservations []domain.Reservation
@@ -89,6 +100,39 @@ func (pr *PGRepository) ListPending(ctx context.Context, courtID int64) ([]domai
 func (pr *PGRepository) UpdateStatus(ctx context.Context, id int64, status domain.ReservationStatus) error {
 	_, err := pr.conn.Exec(ctx, queryUpdateReservationStatus, status, id)
 	return err
+}
+
+func (pr *PGRepository) CreateBlockingReservation(
+	ctx context.Context,
+	courtID, adminID int64,
+	start, end time.Time,
+) (int64, error) {
+	var reservationID int64
+	tx, err := pr.conn.Begin(ctx)
+	if err != nil {
+		return int64(reservationID), err
+	}
+	defer tx.Rollback(ctx)
+
+	rows, err := tx.Query(ctx, queryCancellCrossReservations, courtID, start, end) //TODO: use context with timeout for transaction
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return reservationID, err
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var cancelledID, userID int64
+		err = rows.Scan(&cancelledID, &userID) //TODO: send cancelled reservations to user
+	}
+
+	err = tx.QueryRow(ctx, querySetBlockingReservation, courtID, adminID, start, end).Scan(&reservationID)
+	if err != nil {
+		return reservationID, err
+	}
+
+	return reservationID, tx.Commit(ctx)
 }
 
 /*
