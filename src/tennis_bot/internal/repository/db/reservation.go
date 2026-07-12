@@ -3,10 +3,9 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
-	"tennis_bot/internal/domain"
+	"tennis_bot/internal/domain/reservation"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -23,44 +22,28 @@ const (
 	reservationNoOverlapCode = "23P01"
 )
 
-func (pr *PGRepository) CreateReservation(
-	ctx context.Context,
-	courtID, userID int64, kind domain.ReservationKind,
-	start, end time.Time, status domain.ReservationStatus,
-) (int64, error) {
-	query := fmt.Sprintf(
-		`INSERT INTO %s (%s, %s, %s, %s, %s)
-		VALUES ($1, $2, $3,
-			tstzrange(
-				$4,
-				$5,
-				'[)'
-			), $6)
-		RETURNING id;`,
-		reservationsTable, courtIDCol, userIDCol,
-		kindCol, duringCol, statusCol,
-	)
-
+func (pr *PGRepository) CreateReservation(ctx context.Context, info reservation.Reservation) (int64, error) {
 	var reservationID int64
 	var pgErr *pgconn.PgError
-	err := pr.conn.QueryRow(ctx, query, courtID, userID, kind, start, end, status).Scan(&reservationID)
+	err := pr.conn.QueryRow(ctx,
+		queryCreateReservation,
+		info.CourtID, info.UserID,
+		info.Kind,
+		info.Start, info.End,
+		info.Status,
+	).Scan(&reservationID)
 	if errors.As(err, &pgErr) {
 		if pgErr.Code == reservationNoOverlapCode {
-			return reservationID, domain.ErrReservationOverlap
+			return reservationID, reservation.ErrReservationOverlap
 		}
 	}
+
 	return reservationID, err
 }
 
-func (pr *PGRepository) ListPending(ctx context.Context, courtID int64) ([]domain.Reservation, error) {
-	query := fmt.Sprintf(`
-		SELECT
-			id, court_id, user_id, kind, lower(during), upper(during), status, created_at
-	 	FROM %s WHERE status='pending' AND court_id = $1 ORDER BY created_at;`, reservationsTable,
-	)
-
-	var reservations []domain.Reservation
-	rows, err := pr.conn.Query(ctx, query, courtID)
+func (pr *PGRepository) ListPending(ctx context.Context, courtID int64) ([]reservation.Reservation, error) {
+	var reservations []reservation.Reservation
+	rows, err := pr.conn.Query(ctx, queryListPending, courtID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,14 +65,14 @@ func (pr *PGRepository) ListPending(ctx context.Context, courtID int64) ([]domai
 			return nil, err
 		}
 
-		reservations = append(reservations, domain.Reservation{
+		reservations = append(reservations, reservation.Reservation{
 			ID:        id,
 			CourtID:   courtID,
 			UserID:    userID,
-			Kind:      domain.GetReservationKind(kind),
+			Kind:      reservation.GetReservationKind(kind),
 			Start:     start,
 			End:       end,
-			Status:    domain.ReservationStatusPending,
+			Status:    reservation.ReservationStatusPending,
 			CreatedAt: createdAt,
 		})
 	}
@@ -97,7 +80,7 @@ func (pr *PGRepository) ListPending(ctx context.Context, courtID int64) ([]domai
 	return reservations, nil
 }
 
-func (pr *PGRepository) UpdateStatus(ctx context.Context, id int64, status domain.ReservationStatus) error {
+func (pr *PGRepository) UpdateStatus(ctx context.Context, id int64, status reservation.ReservationStatus) error {
 	_, err := pr.conn.Exec(ctx, queryUpdateReservationStatus, status, id)
 	return err
 }
@@ -134,15 +117,3 @@ func (pr *PGRepository) CreateBlockingReservation(
 
 	return reservationID, tx.Commit(ctx)
 }
-
-/*
-id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-court_id bigint NOT NULL REFERENCES courts(id),
-user_id bigint REFERENCES users(id) ON DELETE SET NULL,
-kind text NOT NULL DEFAULT 'booking',
-during tstzrange NOT NULL,         -- [начало, конец), 14:00-16:00
-status text NOT NULL DEFAULT 'pending',
-created_at timestamptz NOT NULL DEFAULT now(),
-reviwed_at timestamptz,
-cancelled_at timestamptz,
-*/

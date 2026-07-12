@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"tennis_bot/internal/domain"
-	"tennis_bot/internal/repository"
+	repository "tennis_bot/internal/repository/db"
+	usecase "tennis_bot/internal/usecase/court"
 	"time"
 )
 
@@ -18,60 +18,35 @@ func main() {
 		return
 	}
 
-	_, err = repo.EnsureUser(ctx, 2312)
+	usecase := usecase.NewCourtUsecase(repo)
+	err = usecase.EnsureUser(ctx, 121)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("failed to create user", err)
+
 		return
 	}
 
-	err = repo.MarkAsAdmin(ctx, 2312)
+	repo.MarkAsAdmin(ctx, 121)
+
+	courtID, err := usecase.CreateNewCourt(ctx, 121, "Корт Неймарк №2", "07:00", "23:00", "Большие Овраги 12к18")
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("failed to create court", err)
+		return
 	}
 
-	reservationID, err := repo.CreateReservation(
+	fmt.Println("Created court id", courtID)
+
+	reservationID, err := usecase.CreateReservation(
 		ctx,
-		1, 1, domain.ReservationKindBooking,
+		courtID,
+		121,
 		time.Date(2026, time.July, 5, 14, 0, 0, 0, time.UTC),
 		time.Date(2026, time.July, 5, 15, 0, 0, 0, time.UTC),
-		domain.ReservationStatusPending,
 	)
 	if err != nil {
-		fmt.Println(err)
-	}
+		fmt.Println("error", err)
 
+		return
+	}
 	fmt.Println(reservationID)
-	reservationID, err = repo.CreateReservation(
-		ctx,
-		1, 1, domain.ReservationKindBooking,
-		time.Date(2026, time.July, 5, 15, 0, 0, 0, time.UTC),
-		time.Date(2026, time.July, 5, 17, 0, 0, 0, time.UTC),
-		domain.ReservationStatusPending,
-	)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println("Second reservation id", reservationID)
-
-	reservations, err := repo.ListPending(ctx, 1)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(reservations)
-
-	blockingReservationID, err := repo.CreateBlockingReservation(
-		ctx,
-		1, 1,
-		time.Date(2026, time.July, 5, 10, 0, 0, 0, time.UTC),
-		time.Date(2026, time.July, 5, 18, 0, 0, 0, time.UTC),
-	)
-	if err != nil {
-		fmt.Println("AA", err)
-		return
-	}
-
-	fmt.Println(blockingReservationID)
 }

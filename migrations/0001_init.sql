@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS courts (
 );
 
 -- users - пользователи Telegram. Здесь будут использоваться ПДн: имя и телефон.
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     telegram_id bigint NOT NULL UNIQUE, -- постоянный id из телеграмма
     is_admin boolean NOT NULL default false,
@@ -31,7 +31,7 @@ CREATE TABLE users (
 -- kind='booking' - обычная бронь пользователя user_id обязателен
 -- kind='block' - слот закрыт админом (запись по звонку, тех работы)
 --                 user_id=NULL created_by admin
-CREATE TABLE reservations (
+CREATE TABLE IF NOT EXISTS reservations (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     court_id bigint NOT NULL REFERENCES courts(id),
     user_id bigint REFERENCES users(id) ON DELETE SET NULL,
@@ -70,12 +70,12 @@ CREATE TABLE reservations (
 
 
 -- Активные (pending + confirmed брони пользователя); для /my и лимита броней
-CREATE INDEX idx_reservations_user_active
+CREATE INDEX IF NOT EXISTS idx_reservations_user_active
     ON reservations (user_id)
     WHERE status IN ('pending', 'confirmed') AND kind = 'booking';
 
 -- Очередь модерации; ожидающие решение админа
-CREATE INDEX idx_reservations_pending
+CREATE INDEX IF NOT EXISTS idx_reservations_pending
     ON reservations (created_at)
     WHERE status = 'pending' AND kind = 'booking';
 
