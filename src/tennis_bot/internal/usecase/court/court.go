@@ -2,7 +2,10 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func (cu *CourtUsecase) CreateNewCourt(
@@ -12,6 +15,11 @@ func (cu *CourtUsecase) CreateNewCourt(
 	log := cu.log.With(slog.String("method", "CreateNewCourt"))
 	_, err := cu.repo.CheckIfAdmin(ctx, telegramID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			log.Debug("no admin with such telegramID", slog.Int64("telegramID", telegramID))
+
+			return 0, errNotAnAdmin
+		}
 		log.Error("failed to check if admin", slog.Any("error", err))
 		return 0, err
 	}

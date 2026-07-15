@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"tennis_bot/internal/domain/reservation"
+	"tennis_bot/internal/domain/validation"
 	"time"
 )
 
@@ -14,7 +15,11 @@ func (cu *CourtUsecase) CreateReservation(
 ) (int64, error) {
 	log := cu.log.With(slog.String("method", "CreateReservation"))
 
-	// TODO: err := validation.ValidateTimeBounds(start, end)
+	err := validation.ValidateTimeBounds(start, end)
+	if err != nil {
+		log.Info("validation failed", slog.Any("error", err))
+		return 0, err
+	}
 	userID, err := cu.repo.EnsureUser(ctx, telegramID)
 	if err != nil {
 		log.Error("failed to retrieve userID", slog.Any("error", err))
@@ -33,7 +38,7 @@ func (cu *CourtUsecase) CreateReservation(
 	if err != nil {
 		log.Error("failed to create reservation", slog.Any("error", err))
 
-		return 0, nil
+		return 0, err
 	}
 
 	log.Debug("reservation succsesfully created", slog.Int64("reservationID", reservationID))
