@@ -16,9 +16,8 @@ func ValidateTimeBounds(now, start, end time.Time) error {
 		condition bool
 		err       error
 	}
-
 	checks := []condErr{
-		{start.Sub(start).Hours() < minLeadTime, ErrCantBook},
+		{start.Sub(now).Hours() > minLeadTime, ErrCantBook},
 		{start.Year() == end.Year(), ErrInvalidDate},
 		{start.Month() == end.Month(), ErrInvalidDate},
 		{start.Day() == end.Day(), ErrInvalidDate},
