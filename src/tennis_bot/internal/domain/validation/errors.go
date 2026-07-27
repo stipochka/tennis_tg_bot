@@ -3,6 +3,7 @@ package validation
 import "errors"
 
 var (
+	ErrDayDiffReached    = errors.New("cant book more than 7 days ahead")
 	ErrCantBook          = errors.New("too late to book this time")
 	ErrInvalidDate       = errors.New("invalid date provided")
 	ErrLimitReached      = errors.New("booking hours limit exceeded")

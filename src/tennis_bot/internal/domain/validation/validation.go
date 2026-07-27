@@ -9,6 +9,11 @@ const (
 	maxHourToBook   = 3
 	courtOpenedHour = 7
 	courtClosedHour = 23
+	maxDayDiff      = 7
+)
+
+const (
+	hoursInDay = 24
 )
 
 func ValidateTimeBounds(now, start, end time.Time) error {
@@ -18,9 +23,7 @@ func ValidateTimeBounds(now, start, end time.Time) error {
 	}
 	checks := []condErr{
 		{start.Sub(now).Hours() > minLeadTime, ErrCantBook},
-		{start.Year() == end.Year(), ErrInvalidDate},
-		{start.Month() == end.Month(), ErrInvalidDate},
-		{start.Day() == end.Day(), ErrInvalidDate},
+		{start.Sub(now).Hours()/hoursInDay < maxDayDiff, ErrDayDiffReached},
 		{end.After(start), ErrInvalidTimeFormat},
 		{start.Hour() >= courtOpenedHour, ErrInvalidTimeRange},
 		{end.Hour() <= courtClosedHour, ErrInvalidTimeRange},
