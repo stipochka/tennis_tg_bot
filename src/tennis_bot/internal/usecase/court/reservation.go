@@ -45,3 +45,10 @@ func (cu *CourtUsecase) CreateReservation(
 
 	return reservationID, nil
 }
+
+func (cu *CourtUsecase) ListAvaliableSlotsByDay(ctx context.Context, date time.Time) []reservation.AvaliableDaySlot {
+	log := cu.log.With(slog.String("method", "CreateReservation"))
+	log.Debug("hihihihihhi")
+	//err := cu.repo
+	return nil
+}

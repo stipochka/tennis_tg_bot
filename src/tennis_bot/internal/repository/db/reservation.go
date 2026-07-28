@@ -117,3 +117,7 @@ func (pr *PGRepository) CreateBlockingReservation(
 
 	return reservationID, tx.Commit(ctx)
 }
+
+func (pr *PGRepository) ListAvaliableDayHours(ctx context.Context, day time.Time) ([]reservation.AvaliableDaySlot, error) {
+
+}

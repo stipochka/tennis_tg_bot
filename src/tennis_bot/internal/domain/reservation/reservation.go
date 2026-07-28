@@ -43,3 +43,8 @@ type Reservation struct {
 	CreatedAt  time.Time
 	ReviewedAt time.Time
 }
+
+type AvaliableDaySlot struct {
+	Start time.Time
+	End   time.Time
+}

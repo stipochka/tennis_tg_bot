@@ -54,14 +54,9 @@ const (
 		SELECT id, name, open_time, close_time, address, is_active
 		FROM courts WHERE id=$1;
 	`
-)
 
-// -- courts - доступные корты
-// CREATE TABLE IF NOT EXISTS courts (
-//     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-//     name text NOT NULL,
-//     open_time time NOT NULL DEFAULT '07:00',
-//     close_time time NOT NULL DEFAULT '23:00',
-//     address text NOT NULL,
-//     is_active boolean NOT NULL DEFAULT true
-// );
+	queryGetAllReservationsByDay = `
+		SELECT lower(during), upper(during) FROM reservations
+	 	WHERE day(durnig)=$1
+	`
+)
