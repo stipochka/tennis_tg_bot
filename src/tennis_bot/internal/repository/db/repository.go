@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -19,7 +20,14 @@ type PGRepository struct {
 func NewPGRepository(connString string) (*PGRepository, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), connTimeout)
 	defer cancel()
-	conn, err := pgxpool.New(ctx, connString)
+
+	cfg, _ := pgxpool.ParseConfig(connString)
+	cfg.AfterConnect = func(ctx context.Context, c *pgx.Conn) error {
+		_, err := c.Exec(ctx, "SET TIME ZONE 'UTC'")
+		return err
+	}
+
+	conn, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}

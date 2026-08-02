@@ -43,3 +43,8 @@ func (pr *PGRepository) CheckIfAdmin(ctx context.Context, telegramID int64) (boo
 
 	return true, nil
 }
+
+func (pr *PGRepository) ApproveReservation(ctx context.Context, bookID int) error {
+	_, err := pr.conn.Exec(ctx, queryApproveReservation, bookID)
+	return err
+}

@@ -32,13 +32,16 @@ func main() {
 		ctx,
 		1,
 		121,
-		time.Date(2026, time.July, 5, 14, 0, 0, 0, time.UTC),
-		time.Date(2026, time.July, 5, 16, 0, 0, 0, time.UTC),
+		time.Date(2026, time.September, 5, 19, 0, 0, 0, time.UTC),
+		time.Date(2026, time.September, 5, 21, 0, 0, 0, time.UTC),
 	)
 	if err != nil {
 		fmt.Println("error", err)
-
-		return
 	}
 	fmt.Println(reservationID)
+
+	err = usecase.ApproveReservation(ctx, 4)
+	if err != nil {
+		fmt.Println("AAAAAA", err)
+	}
 }

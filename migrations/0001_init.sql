@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS reservations (
     during tstzrange NOT NULL,         -- [начало, конец), 14:00-16:00
     status text NOT NULL DEFAULT 'pending',
     created_at timestamptz NOT NULL DEFAULT now(),
-    reviwed_at timestamptz,
+    reviewed_at timestamptz,
     cancelled_at timestamptz,
 
     CONSTRAINT reservations_kind_chk
