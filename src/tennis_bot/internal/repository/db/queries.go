@@ -57,6 +57,6 @@ const (
 
 	queryGetAllReservationsByDay = `
 		SELECT lower(during), upper(during) FROM reservations
-	 	WHERE day(durnig)=$1
+	 	WHERE court_id=$1 AND status IN ('pending', 'confirmed') AND during && tstzrange($2, $3, '[)');
 	`
 )

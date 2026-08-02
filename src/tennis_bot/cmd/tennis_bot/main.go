@@ -32,13 +32,20 @@ func main() {
 		ctx,
 		1,
 		121,
-		time.Date(2026, time.July, 5, 14, 0, 0, 0, time.UTC),
-		time.Date(2026, time.July, 5, 16, 0, 0, 0, time.UTC),
+		time.Date(2026, time.August, 3, 14, 0, 0, 0, time.UTC),
+		time.Date(2026, time.August, 3, 16, 0, 0, 0, time.UTC),
 	)
 	if err != nil {
 		fmt.Println("error", err)
-
-		return
 	}
 	fmt.Println(reservationID)
+
+	avaliableSlots, err := usecase.ListAvaliableSlotsByDay(ctx, 1, time.Date(2026, time.August, 3, 14, 0, 0, 0, time.UTC))
+	if err != nil {
+		fmt.Println("err", err)
+	}
+
+	for _, slot := range avaliableSlots {
+		fmt.Println("availiable", slot.Start, slot.End)
+	}
 }

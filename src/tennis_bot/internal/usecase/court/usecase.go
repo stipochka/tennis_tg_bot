@@ -13,6 +13,7 @@ type Repository interface {
 	CreateCourt(ctx context.Context, name string, openTime, closeTime string, address string) (int64, error)
 	CreateReservation(ctx context.Context, info reservation.Reservation) (int64, error)
 	ListPending(ctx context.Context, courtID int64) ([]reservation.Reservation, error)
+	ListAllDaySlots(ctx context.Context, courtID int, day time.Time) ([]reservation.DaySlot, error)
 	UpdateStatus(ctx context.Context, id int64, status reservation.ReservationStatus) error
 	CreateBlockingReservation(
 		ctx context.Context,

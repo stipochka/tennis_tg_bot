@@ -44,7 +44,12 @@ type Reservation struct {
 	ReviewedAt time.Time
 }
 
-type AvaliableDaySlot struct {
+type Slot struct {
+	Start int
+	End   int
+}
+
+type DaySlot struct {
 	Start time.Time
 	End   time.Time
 }

@@ -118,6 +118,30 @@ func (pr *PGRepository) CreateBlockingReservation(
 	return reservationID, tx.Commit(ctx)
 }
 
-func (pr *PGRepository) ListAvaliableDayHours(ctx context.Context, day time.Time) ([]reservation.AvaliableDaySlot, error) {
+func (pr *PGRepository) ListAllDaySlots(ctx context.Context, courtID int, day time.Time) ([]reservation.DaySlot, error) {
+	var slots []reservation.DaySlot
 
+	rows, err := pr.conn.Query(ctx, queryGetAllReservationsByDay, courtID, day, day.Add(23*time.Hour))
+	if err != nil {
+		return slots, err
+	}
+
+	for rows.Next() {
+		var (
+			start time.Time
+			end   time.Time
+		)
+
+		err := rows.Scan(&start, &end)
+		if err != nil {
+			return slots, err
+		}
+
+		slots = append(slots, reservation.DaySlot{
+			Start: start,
+			End:   end,
+		})
+	}
+
+	return slots, nil
 }

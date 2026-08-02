@@ -5,6 +5,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-court}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-court}
       POSTGRES_DB: ${POSTGRES_DB:-court}
+      PGTZ: "UTC"
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     healthcheck:
